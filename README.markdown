@@ -12,12 +12,13 @@ Hyde is a static website generator with the power of Django templates behind it.
 
 ## Basic Installation
 
-The very basic installation of hyde only needs Django and pyYAML. More python goodies are needed based on the features you may use.
+The very basic installation of hyde only needs Django, Markdown and pyYAML. More python goodies are needed based on the features you may use.
 
     sudo easy_install django
     sudo easy_install pyYAML
+    sudo easy_install markdown
 
-Get the hyde source by git cloning this repository.
+Get the hyde source by [git cloning](http://github.com/guides/home) this repository.
 
     sudo python setup.py install
 
@@ -271,3 +272,7 @@ The [Ringce][ringce] website source is available as a reference implementation.
 - [joshrosen](http://github.com/JoshRosen)
 - [Harry Lachenmayer](http://github.com/h3yl9r)
 - [Kailoa Kadano](http://github.com/kailoa)
+- [Tom von Schwerdtner](http://github.com/tvon)
+- [montecristo](http://github.com/montecristo)
+- [Valentin Jacquemin](http://github.com/poxd)
+- [Johannes Reinhard](http://github.com/SpeckFleck)

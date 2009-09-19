@@ -22,7 +22,7 @@ from hydeengine.templatetags.hydetags \
 TEST_SITE = Folder(TEST_ROOT).child_folder("test_site")
 
 def setup_module(module):
-    Initializer(TEST_SITE.path).initialize(ROOT, template="default", force=True)
+    Initializer(TEST_SITE.path).initialize(ROOT, template="test", force=True)
     setup_env(TEST_SITE.path)
 
 def teardown_module(module):

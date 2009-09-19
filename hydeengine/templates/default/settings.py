@@ -69,7 +69,12 @@ MEDIA_PROCESSORS = {
     } 
 }
 
-CONTENT_PROCESSORS = {}
+CONTENT_PROCESSORS = {
+    'prerendered/': {
+        '*.*' : 
+            ('hydeengine.content_processors.PassthroughProcessor',)
+            }
+}
 
 SITE_POST_PROCESSORS = {
     # 'media/js': {

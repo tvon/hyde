@@ -1,6 +1,6 @@
 import os
 
-ROOT_PATH = os.path.dirname(__file__)
+ROOT_PATH = os.path.abspath(os.path.dirname(__file__))
 
 #Directories
 LAYOUT_DIR = os.path.join(ROOT_PATH, 'layout')
@@ -8,17 +8,20 @@ CONTENT_DIR = os.path.join(ROOT_PATH, 'content')
 MEDIA_DIR = os.path.join(ROOT_PATH, 'media')
 DEPLOY_DIR = os.path.join(ROOT_PATH, 'deploy')
 TMP_DIR = os.path.join(ROOT_PATH, 'deploy_tmp')
+
 BACKUPS_DIR = os.path.join(ROOT_PATH, 'backups')
-URL_LIST_FILE = os.path.join(ROOT_PATH, 'urllist.txt')
+BACKUP = False                 
 
-BACKUP = False
+BLOG_DIR = os.path.join(CONTENT_DIR,"blog")
 
-SITE_ROOT  = "/"
+SITE_ROOT = "/"
 SITE_WWW_URL = "http://www.yoursite.com"
-SITE_NAME = "Hyde"
+SITE_NAME = "Your Site"
+SITE_AUTHOR = "Your Name"
+SITE_ROOT = "/"
 
 #Url Configuration
-GENERATE_ABSOLUTE_FS_URLS = True
+GENERATE_ABSOLUTE_FS_URLS = False
 
 # Clean urls causes Hyde to generate urls without extensions. Examples:
 # http://example.com/section/page.html becomes
@@ -33,8 +36,8 @@ GENERATE_CLEAN_URLS = False
 
 # A list of filenames (without extensions) that will be considered listing
 # pages for their enclosing folders.
-# LISTING_PAGE_NAMES = ['index.html']
-LISTING_PAGE_NAMES = []
+# LISTING_PAGE_NAMES = ['index']
+LISTING_PAGE_NAMES = ['listing', 'index', 'default']
 
 # Determines whether or not to append a trailing slash to generated urls when
 # clean urls are enabled.
@@ -53,39 +56,58 @@ APPEND_SLASH = False
 
 MEDIA_PROCESSORS = {
     '*':{
-        '.css':('hydeengine.media_processors.YUICompressor',),
-        '.ccss':('hydeengine.media_processors.CleverCSS',
-                 'hydeengine.media_processors.YUICompressor',),
-        '.hss':('hydeengine.media_processors.HSS',
+        '.css':('hydeengine.media_processors.TemplateProcessor',
                 'hydeengine.media_processors.YUICompressor',),
-        '.js':('hydeengine.media_processors.YUICompressor',)
+        '.ccss':('hydeengine.media_processors.TemplateProcessor',
+                'hydeengine.media_processors.CleverCSS',
+                'hydeengine.media_processors.YUICompressor',),
+        '.hss':(
+                'hydeengine.media_processors.TemplateProcessor',
+                'hydeengine.media_processors.HSS',
+                'hydeengine.media_processors.YUICompressor',),
+        '.js':(
+                'hydeengine.media_processors.TemplateProcessor',
+                'hydeengine.media_processors.YUICompressor',)
     } 
 }
 
 CONTENT_PROCESSORS = {
-    '*': {'.html':('hydeengine.content_processors.YAMLContentProcessor',)}
+    'prerendered/': {
+        '*.*' : 
+            ('hydeengine.content_processors.PassthroughProcessor',)
+            }
 }
 
 SITE_POST_PROCESSORS = {
-    '/':{
-        'hydeengine.site_post_processors.UrlListGenerator' : {
-            'url_list_file': URL_LIST_FILE
-        },
-    #   'hydeengine.site_post_processors.HtaccessGenerator' : {
-    #       'template' : '_htaccess'    
-    #   }
+    # 'media/js': {
+    #        'hydeengine.site_post_processors.FolderFlattener' : {
+    #                'remove_processed_folders': True,
+    #                'pattern':"*.js"
+    #        }
+    #    }
+}                       
+
+SITE_PRE_PROCESSORS = {
+    'blog': {
+        'hydeengine.site_pre_processors.CategoriesManager' : {},
     },
-    'media/js/': {
-        'hydeengine.site_post_processors.FolderFlattener' : {
-                'remove_processed_folders': True,
-                'pattern':"*.js"
+    '/': {
+        'hydeengine.site_pre_processors.NodeInjector' : {
+               'variable' : 'blog_node',
+               'path' : 'content/blog'
         }
     }
 }
 
 CONTEXT = {
-
+    'GENERATE_CLEAN_URLS': GENERATE_CLEAN_URLS
 }
+
+FILTER = { 
+    'include': (".htaccess",),
+    'exclude': (".*","*~")
+}        
+
 
 #Processor Configuration
 
@@ -96,17 +118,14 @@ YUI_COMPRESSOR = None
 
 # path for HSS, which is a preprocessor for CSS-like files (*.hss)
 # project page at http://ncannasse.fr/projects/hss
-HSS_PATH = None
-
-
-
+#HSS_PATH = "./lib/hss-1.0-osx"
+HSS_PATH = None # if you don't want to use HSS
 
 #Django settings
 
-TEMPLATE_DIRS = ( LAYOUT_DIR, CONTENT_DIR, TMP_DIR)
+TEMPLATE_DIRS = (LAYOUT_DIR, CONTENT_DIR, TMP_DIR, MEDIA_DIR)
 
 INSTALLED_APPS = (
     'hydeengine',
     'django.contrib.webdesign',
 )
-

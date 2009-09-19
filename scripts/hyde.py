@@ -37,7 +37,8 @@ def main(argv):
                         dest = "webserve", default = False, 
                         help = "Start an instance of the CherryPy webserver.")
     parser.add_option("-p", "--port",
-                        dest = "port", default='8080',
+                        dest = "port", default=8080, 
+                        type='int',
                         help = "Port webserver should listen on (8080).")
     parser.add_option("-a", "--address",
                         dest = "address", default='localhost',
@@ -74,7 +75,7 @@ def main(argv):
         generator.generate(options.deploy_to, options.keep_watching, quit)        
 
     if options.webserve:
-        server = hydeengine.Server(options.site_path, address=options.address, port=options.port)
+        server = Server(options.site_path, address=options.address, port=options.port)
         server.serve(options.deploy_to, quit)
         
     if ((options.generate and options.keep_watching)   

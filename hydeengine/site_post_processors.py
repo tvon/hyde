@@ -82,4 +82,3 @@ priority=%(priority).1f\n"
         File(config_file).delete()
         File(url_list_file).delete()
 
-

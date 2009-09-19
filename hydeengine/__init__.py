@@ -33,8 +33,9 @@ class _HydeDefaults:
     APPEND_SLASH = False
     MEDIA_PROCESSORS = {}
     CONTENT_PROCESSORS = {}
+    SITE_PRE_PROCESSORS = {}
     SITE_POST_PROCESSORS = {}
-    CONTEXT = {}
+    CONTEXT = {'blog': {}}
 
 def setup_env(site_path):
     """    
@@ -95,7 +96,7 @@ class Server(object):
     
     """
     
-    def __init__(self, site_path, address='127.0.0.1', port='8080'):
+    def __init__(self, site_path, address='localhost', port=8080):
         super(Server, self).__init__()
         self.site_path = os.path.abspath(os.path.expandvars(
                                         os.path.expanduser(site_path))) 
@@ -172,11 +173,11 @@ class Server(object):
                     raise cherrypy.NotFound
         
         cherrypy.config.update({'environment': 'production',
-                                'log.error_file': 'site.log',
-                                'log.screen': True,
-                                'server.socket_host': self.address,
-                                'server.socket_port': int(self.port),
-                                })
+                                  'log.error_file': 'site.log',
+                                  'log.screen': True,
+                                  'server.socket_host': self.address,
+                                  'server.socket_port': self.port,
+                                  })
 
         # even if we're still using clean urls, we still need to serve media.
         if settings.GENERATE_CLEAN_URLS:
@@ -234,6 +235,9 @@ class Generator(object):
         self.processor = Processor(settings)
         self.quitting = False
     
+    def pre_process(self, node):
+        self.processor.pre_process(node)
+        
     def process(self, item, change="Added"):
         if change in ("Added", "Modified"):
             settings.CONTEXT['node'] = item.node
@@ -267,11 +271,12 @@ class Generator(object):
         self.siteinfo  = SiteInfo(settings, self.site_path)
         self.siteinfo.refresh()
         settings.CONTEXT['site'] = self.siteinfo.content_node
-    
+                            
     def post_process(self, node):
-        self.processor.post_process(self.siteinfo)
+        self.processor.post_process(node)
     
     def process_all(self):
+        self.pre_process(self.siteinfo)
         for resource in self.siteinfo.walk_resources():
             self.process(resource)
         self.post_process(self.siteinfo)

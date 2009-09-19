@@ -1,7 +1,9 @@
 import os, commands, sys
+import fnmatch
 from django.template.loader import render_to_string
 from django.conf import settings
-from file_system import File
+from file_system import File     
+
 
 class TemplateProcessor:
     @staticmethod
@@ -13,8 +15,7 @@ class TemplateProcessor:
             print >> sys.stderr, \
             "Error while rendering page %s" % \
             resource.url
-            raise
-             
+            raise             
     
 
 ## aym-cms code refactored into processors.

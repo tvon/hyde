@@ -1,5 +1,6 @@
 import sys
 import logging
+import fnmatch
 from media_processors import TemplateProcessor
 
 def load_processor(name):
@@ -54,7 +55,8 @@ class Processor(object):
         current_processors = []
         this_node = node
         while this_node:
-            fragment = this_node.fragment
+            fragment = this_node.fragment          
+            self.logger.debug("Getting processors for: %s" % fragment) 
             if fragment in processors:
                 current_processors.append(processors[fragment])
             this_node = this_node.parent
@@ -86,16 +88,29 @@ class Processor(object):
         for processer_map in processor_config:
             if resource.file.extension in processer_map:
                 processors.extend(processer_map[resource.file.extension])
+            else:
+                self.logger.debug("Extension %s" % resource.file.extension)                    
+                #
+                # Wildcard matching: 
+                # This should be the default matcher going forward
+                # The above branch needs to be kept around until everyone
+                # has had the chance to upgrade their settings file.
+                #
+                for wildcard, processor_list in processer_map.iteritems():
+                    self.logger.debug(wildcard)                    
+                    if fnmatch.fnmatch(resource.file.name, wildcard):
+                        processors.extend(processor_list)                        
+                    
         resource.temp_file.parent.make()        
         resource.source_file.copy_to(resource.temp_file)  
         (original_source, resource.source_file) = (
-                                resource.source_file, resource.temp_file)
+                               resource.source_file, resource.temp_file)
         for processor_name in processors:
             processor = load_processor(processor_name)
             self.logger.debug("       Executing %s" % processor_name)
             processor.process(resource)
         
-        if resource.node.type == "content":
+        if resource.node.type == "content" and not resource.prerendered:
             self.settings.CONTEXT['page'] = resource
             self.logger.debug("       Rendering Page")
             TemplateProcessor.process(resource)
@@ -104,20 +119,30 @@ class Processor(object):
         resource.source_file = original_source
         self.logger.debug("        Processing Complete")
         return True
+
+    def pre_process(self, node):
+        self.logger.info("Pre processing %s" % str(node.folder))
+        self.__around_process__(node, self.settings.SITE_PRE_PROCESSORS)
           
     def post_process(self, node):
         self.logger.info("Post processing %s" % str(node.folder))
+        self.__around_process__(node, self.settings.SITE_POST_PROCESSORS)
+       
+    def __around_process__(self, node, processors):
         for child in node.walk():
             if not child.type in ("content", "media"):
                 continue
-            self.logger.debug("       Finalizing %s" % str(child.folder))    
             fragment = child.temp_folder.get_fragment(node.site.temp_folder)
             fragment = fragment.rstrip("/")
             if not fragment:
                 fragment = "/"
-            if fragment in self.settings.SITE_POST_PROCESSORS:
-                processor_config = self.settings.SITE_POST_PROCESSORS[fragment]
+            if fragment in processors:           
+                processor_config = processors[fragment]
                 for processor_name, params in processor_config.iteritems():
-                    self.logger.debug("           Executing %s" % processor_name) 
-                    processor = load_processor(processor_name)
+                    self.logger.debug("           Executing %s" % processor_name)
+                    processor = load_processor(processor_name) 
+                    if not params:
+                        params = {}
+                    params.update( {'node': child})
                     processor.process(child.temp_folder, params)
+
